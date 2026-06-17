@@ -76,9 +76,10 @@ public class CropCareTaskService : ICropCareTaskService
 
         var crops = (await _unitOfWork.Crops.GetAllAsync(cancellationToken)).ToDictionary(c => c.Id, c => c.Name);
 
+        var pageSize = query.PageSize <= 0 ? 10 : query.PageSize;
         var items = tasksQuery
-            .Skip((query.PageNumber - 1) * query.PageSize)
-            .Take(query.PageSize)
+            .Skip((query.PageNumber - 1) * pageSize)
+            .Take(pageSize)
             .Adapt<IEnumerable<CropCareTaskDto>>()
             .Select(t =>
             {
@@ -96,8 +97,8 @@ public class CropCareTaskService : ICropCareTaskService
             Items = items,
             TotalCount = totalCount,
             PageNumber = query.PageNumber,
-            PageSize = query.PageSize,
-            TotalPages = (int)Math.Ceiling(totalCount / (double)query.PageSize)
+            PageSize = pageSize,
+            TotalPages = (int)Math.Ceiling(totalCount / (double)pageSize)
         };
 
         return ApiResponse<PagedResult<CropCareTaskDto>>.Success(result);
@@ -188,6 +189,10 @@ public class CropCareTaskService : ICropCareTaskService
             {
                 task.CompletedDate = DateTime.UtcNow;
             }
+            else if (task.CompletedDate.HasValue)
+            {
+                task.CompletedDate = null;
+            }
         }
         if (dto.Note != null)
             task.Note = dto.Note;
@@ -257,6 +262,10 @@ public class CropCareTaskService : ICropCareTaskService
         if (dto.Status == TaskStatus.Completed)
         {
             task.CompletedDate = DateTime.UtcNow;
+        }
+        else if (task.CompletedDate.HasValue)
+        {
+            task.CompletedDate = null;
         }
 
         await _unitOfWork.CropCareTasks.UpdateAsync(task, cancellationToken);
