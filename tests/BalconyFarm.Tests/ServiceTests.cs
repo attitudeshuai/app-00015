@@ -809,5 +809,1365 @@ public class ServiceTests
         _unitOfWorkMock.Verify(u => u.CropCareTasks.UpdateAsync(It.IsAny<CropCareTask>(), _cancellationToken), Times.Never);
     }
 
+    [Fact]
+    public async Task UpdateTaskStatusAsync_ShouldReturnError_WhenTaskDoesNotExist()
+    {
+        var userId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+        var updateDto = new UpdateTaskStatusRequestDto
+        {
+            Status = TaskStatus.InProgress
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetByIdAsync(taskId, _cancellationToken))
+            .ReturnsAsync((CropCareTask?)null);
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.UpdateTaskStatusAsync(taskId, updateDto, userId, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(404);
+        result.Message.Should().Be("任务不存在");
+        result.Data.Should().BeNull();
+
+        _unitOfWorkMock.Verify(u => u.CropCareTasks.UpdateAsync(It.IsAny<CropCareTask>(), _cancellationToken), Times.Never);
+        _unitOfWorkMock.Verify(u => u.SaveChangesAsync(_cancellationToken), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateTaskStatusAsync_ShouldChangeToInProgress_WhenStatusIsInProgress()
+    {
+        var userId = Guid.NewGuid();
+        var cropId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+        var crop = new Crop
+        {
+            Id = cropId,
+            UserId = userId,
+            Name = "番茄",
+            Status = CropStatus.Growing
+        };
+        var task = new CropCareTask
+        {
+            Id = taskId,
+            CropId = cropId,
+            TaskType = TaskType.Water,
+            Status = TaskStatus.Pending,
+            CompletedDate = null,
+            ScheduledDate = DateTime.UtcNow.AddDays(1)
+        };
+
+        var updateDto = new UpdateTaskStatusRequestDto
+        {
+            Status = TaskStatus.InProgress
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetByIdAsync(taskId, _cancellationToken))
+            .ReturnsAsync(task);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetByIdAsync(cropId, _cancellationToken))
+            .ReturnsAsync(crop);
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.UpdateAsync(It.IsAny<CropCareTask>(), _cancellationToken))
+            .Returns(Task.CompletedTask);
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.FindAsync(
+                It.IsAny<System.Linq.Expressions.Expression<Func<CropCareTask, bool>>>(),
+                _cancellationToken))
+            .ReturnsAsync(new List<CropCareTask> { task });
+
+        _unitOfWorkMock.Setup(u => u.SaveChangesAsync(_cancellationToken))
+            .ReturnsAsync(1);
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.UpdateTaskStatusAsync(taskId, updateDto, userId, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(200);
+        result.Data.Should().NotBeNull();
+        result.Data!.Status.Should().Be(TaskStatus.InProgress);
+        result.Data.CompletedDate.Should().BeNull();
+
+        _unitOfWorkMock.Verify(u => u.CropCareTasks.UpdateAsync(It.Is<CropCareTask>(t =>
+            t.Status == TaskStatus.InProgress &&
+            t.CompletedDate == null), _cancellationToken), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateTaskStatusAsync_ShouldChangeToCancelled_WhenStatusIsCancelled()
+    {
+        var userId = Guid.NewGuid();
+        var cropId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+        var crop = new Crop
+        {
+            Id = cropId,
+            UserId = userId,
+            Name = "番茄",
+            Status = CropStatus.Growing
+        };
+        var task = new CropCareTask
+        {
+            Id = taskId,
+            CropId = cropId,
+            TaskType = TaskType.Water,
+            Status = TaskStatus.Pending,
+            CompletedDate = null,
+            ScheduledDate = DateTime.UtcNow.AddDays(1)
+        };
+
+        var updateDto = new UpdateTaskStatusRequestDto
+        {
+            Status = TaskStatus.Cancelled
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetByIdAsync(taskId, _cancellationToken))
+            .ReturnsAsync(task);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetByIdAsync(cropId, _cancellationToken))
+            .ReturnsAsync(crop);
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.UpdateAsync(It.IsAny<CropCareTask>(), _cancellationToken))
+            .Returns(Task.CompletedTask);
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.FindAsync(
+                It.IsAny<System.Linq.Expressions.Expression<Func<CropCareTask, bool>>>(),
+                _cancellationToken))
+            .ReturnsAsync(new List<CropCareTask> { task });
+
+        _unitOfWorkMock.Setup(u => u.SaveChangesAsync(_cancellationToken))
+            .ReturnsAsync(1);
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.UpdateTaskStatusAsync(taskId, updateDto, userId, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(200);
+        result.Data.Should().NotBeNull();
+        result.Data!.Status.Should().Be(TaskStatus.Cancelled);
+        result.Data.CompletedDate.Should().BeNull();
+
+        _unitOfWorkMock.Verify(u => u.CropCareTasks.UpdateAsync(It.Is<CropCareTask>(t =>
+            t.Status == TaskStatus.Cancelled &&
+            t.CompletedDate == null), _cancellationToken), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateTaskStatusAsync_ShouldUpdateCropStatusToFinished_WhenAllTasksCompleted()
+    {
+        var userId = Guid.NewGuid();
+        var cropId = Guid.NewGuid();
+        var taskId1 = Guid.NewGuid();
+        var taskId2 = Guid.NewGuid();
+        var crop = new Crop
+        {
+            Id = cropId,
+            UserId = userId,
+            Name = "番茄",
+            Status = CropStatus.Growing
+        };
+        var task1 = new CropCareTask
+        {
+            Id = taskId1,
+            CropId = cropId,
+            TaskType = TaskType.Water,
+            Status = TaskStatus.Completed,
+            CompletedDate = DateTime.UtcNow.AddDays(-1)
+        };
+        var task2 = new CropCareTask
+        {
+            Id = taskId2,
+            CropId = cropId,
+            TaskType = TaskType.Fertilize,
+            Status = TaskStatus.Pending,
+            CompletedDate = null
+        };
+
+        var updateDto = new UpdateTaskStatusRequestDto
+        {
+            Status = TaskStatus.Completed
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetByIdAsync(taskId2, _cancellationToken))
+            .ReturnsAsync(task2);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetByIdAsync(cropId, _cancellationToken))
+            .ReturnsAsync(crop);
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.UpdateAsync(It.IsAny<CropCareTask>(), _cancellationToken))
+            .Returns(Task.CompletedTask);
+
+        _unitOfWorkMock.Setup(u => u.Crops.UpdateAsync(It.IsAny<Crop>(), _cancellationToken))
+            .Returns(Task.CompletedTask);
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.FindAsync(
+                It.IsAny<System.Linq.Expressions.Expression<Func<CropCareTask, bool>>>(),
+                _cancellationToken))
+            .ReturnsAsync(new List<CropCareTask> { task1, task2 });
+
+        _unitOfWorkMock.Setup(u => u.SaveChangesAsync(_cancellationToken))
+            .ReturnsAsync(1);
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.UpdateTaskStatusAsync(taskId2, updateDto, userId, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(200);
+
+        _unitOfWorkMock.Verify(u => u.Crops.UpdateAsync(It.Is<Crop>(c =>
+            c.Status == CropStatus.Finished), _cancellationToken), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateTaskStatusAsync_ShouldNotUpdateCropStatus_WhenNotAllTasksCompleted()
+    {
+        var userId = Guid.NewGuid();
+        var cropId = Guid.NewGuid();
+        var taskId1 = Guid.NewGuid();
+        var taskId2 = Guid.NewGuid();
+        var crop = new Crop
+        {
+            Id = cropId,
+            UserId = userId,
+            Name = "番茄",
+            Status = CropStatus.Growing
+        };
+        var task1 = new CropCareTask
+        {
+            Id = taskId1,
+            CropId = cropId,
+            TaskType = TaskType.Water,
+            Status = TaskStatus.InProgress
+        };
+        var task2 = new CropCareTask
+        {
+            Id = taskId2,
+            CropId = cropId,
+            TaskType = TaskType.Fertilize,
+            Status = TaskStatus.Pending
+        };
+
+        var updateDto = new UpdateTaskStatusRequestDto
+        {
+            Status = TaskStatus.InProgress
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetByIdAsync(taskId2, _cancellationToken))
+            .ReturnsAsync(task2);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetByIdAsync(cropId, _cancellationToken))
+            .ReturnsAsync(crop);
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.UpdateAsync(It.IsAny<CropCareTask>(), _cancellationToken))
+            .Returns(Task.CompletedTask);
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.FindAsync(
+                It.IsAny<System.Linq.Expressions.Expression<Func<CropCareTask, bool>>>(),
+                _cancellationToken))
+            .ReturnsAsync(new List<CropCareTask> { task1, task2 });
+
+        _unitOfWorkMock.Setup(u => u.SaveChangesAsync(_cancellationToken))
+            .ReturnsAsync(1);
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.UpdateTaskStatusAsync(taskId2, updateDto, userId, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(200);
+
+        _unitOfWorkMock.Verify(u => u.Crops.UpdateAsync(It.IsAny<Crop>(), _cancellationToken), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateCropCareTaskAsync_ShouldUpdateCropStatus_WhenStatusChangesToCompleted()
+    {
+        var userId = Guid.NewGuid();
+        var cropId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+        var crop = new Crop
+        {
+            Id = cropId,
+            UserId = userId,
+            Name = "番茄",
+            Status = CropStatus.Growing
+        };
+        var task = new CropCareTask
+        {
+            Id = taskId,
+            CropId = cropId,
+            TaskType = TaskType.Water,
+            Status = TaskStatus.Pending
+        };
+
+        var updateDto = new UpdateCropCareTaskRequestDto
+        {
+            Status = TaskStatus.Completed
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetByIdAsync(taskId, _cancellationToken))
+            .ReturnsAsync(task);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetByIdAsync(cropId, _cancellationToken))
+            .ReturnsAsync(crop);
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.UpdateAsync(It.IsAny<CropCareTask>(), _cancellationToken))
+            .Returns(Task.CompletedTask);
+
+        _unitOfWorkMock.Setup(u => u.Crops.UpdateAsync(It.IsAny<Crop>(), _cancellationToken))
+            .Returns(Task.CompletedTask);
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.FindAsync(
+                It.IsAny<System.Linq.Expressions.Expression<Func<CropCareTask, bool>>>(),
+                _cancellationToken))
+            .ReturnsAsync(new List<CropCareTask> { task });
+
+        _unitOfWorkMock.Setup(u => u.SaveChangesAsync(_cancellationToken))
+            .ReturnsAsync(1);
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.UpdateCropCareTaskAsync(taskId, updateDto, userId, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(200);
+
+        _unitOfWorkMock.Verify(u => u.Crops.UpdateAsync(It.Is<Crop>(c =>
+            c.Status == CropStatus.Finished), _cancellationToken), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteCropCareTaskAsync_ShouldUpdateCropStatus_WhenRemainingTasksAllCompleted()
+    {
+        var userId = Guid.NewGuid();
+        var cropId = Guid.NewGuid();
+        var taskId1 = Guid.NewGuid();
+        var taskId2 = Guid.NewGuid();
+        var crop = new Crop
+        {
+            Id = cropId,
+            UserId = userId,
+            Name = "番茄",
+            Status = CropStatus.Growing
+        };
+        var task1 = new CropCareTask
+        {
+            Id = taskId1,
+            CropId = cropId,
+            TaskType = TaskType.Water,
+            Status = TaskStatus.Completed
+        };
+        var task2 = new CropCareTask
+        {
+            Id = taskId2,
+            CropId = cropId,
+            TaskType = TaskType.Fertilize,
+            Status = TaskStatus.Pending
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetByIdAsync(taskId2, _cancellationToken))
+            .ReturnsAsync(task2);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetByIdAsync(cropId, _cancellationToken))
+            .ReturnsAsync(crop);
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.DeleteAsync(task2, _cancellationToken))
+            .Returns(Task.CompletedTask);
+
+        _unitOfWorkMock.Setup(u => u.Crops.UpdateAsync(It.IsAny<Crop>(), _cancellationToken))
+            .Returns(Task.CompletedTask);
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.FindAsync(
+                It.IsAny<System.Linq.Expressions.Expression<Func<CropCareTask, bool>>>(),
+                _cancellationToken))
+            .ReturnsAsync(new List<CropCareTask> { task1 });
+
+        _unitOfWorkMock.Setup(u => u.SaveChangesAsync(_cancellationToken))
+            .ReturnsAsync(1);
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.DeleteCropCareTaskAsync(taskId2, userId, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(200);
+
+        _unitOfWorkMock.Verify(u => u.Crops.UpdateAsync(It.Is<Crop>(c =>
+            c.Status == CropStatus.Finished), _cancellationToken), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetCropCareTaskByIdAsync_ShouldMarkOverdue_WhenPendingAndPastDate()
+    {
+        var taskId = Guid.NewGuid();
+        var cropId = Guid.NewGuid();
+        var crop = new Crop
+        {
+            Id = cropId,
+            Name = "番茄"
+        };
+        var task = new CropCareTask
+        {
+            Id = taskId,
+            CropId = cropId,
+            TaskType = TaskType.Water,
+            Status = TaskStatus.Pending,
+            ScheduledDate = DateTime.UtcNow.AddDays(-3).Date
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetByIdAsync(taskId, _cancellationToken))
+            .ReturnsAsync(task);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetByIdAsync(cropId, _cancellationToken))
+            .ReturnsAsync(crop);
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.GetCropCareTaskByIdAsync(taskId, null, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(200);
+        result.Data.Should().NotBeNull();
+        result.Data!.IsOverdue.Should().BeTrue();
+        result.Data.OverdueDays.Should().Be(3);
+    }
+
+    [Fact]
+    public async Task GetCropCareTaskByIdAsync_ShouldMarkOverdue_WhenInProgressAndPastDate()
+    {
+        var taskId = Guid.NewGuid();
+        var cropId = Guid.NewGuid();
+        var crop = new Crop
+        {
+            Id = cropId,
+            Name = "番茄"
+        };
+        var task = new CropCareTask
+        {
+            Id = taskId,
+            CropId = cropId,
+            TaskType = TaskType.Fertilize,
+            Status = TaskStatus.InProgress,
+            ScheduledDate = DateTime.UtcNow.AddDays(-5).Date
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetByIdAsync(taskId, _cancellationToken))
+            .ReturnsAsync(task);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetByIdAsync(cropId, _cancellationToken))
+            .ReturnsAsync(crop);
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.GetCropCareTaskByIdAsync(taskId, null, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(200);
+        result.Data.Should().NotBeNull();
+        result.Data!.IsOverdue.Should().BeTrue();
+        result.Data.OverdueDays.Should().Be(5);
+    }
+
+    [Fact]
+    public async Task GetCropCareTaskByIdAsync_ShouldNotMarkOverdue_WhenCompleted()
+    {
+        var taskId = Guid.NewGuid();
+        var cropId = Guid.NewGuid();
+        var crop = new Crop
+        {
+            Id = cropId,
+            Name = "番茄"
+        };
+        var task = new CropCareTask
+        {
+            Id = taskId,
+            CropId = cropId,
+            TaskType = TaskType.Water,
+            Status = TaskStatus.Completed,
+            ScheduledDate = DateTime.UtcNow.AddDays(-10).Date,
+            CompletedDate = DateTime.UtcNow.AddDays(-8)
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetByIdAsync(taskId, _cancellationToken))
+            .ReturnsAsync(task);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetByIdAsync(cropId, _cancellationToken))
+            .ReturnsAsync(crop);
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.GetCropCareTaskByIdAsync(taskId, null, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(200);
+        result.Data.Should().NotBeNull();
+        result.Data!.IsOverdue.Should().BeFalse();
+        result.Data.OverdueDays.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetCropCareTaskByIdAsync_ShouldNotMarkOverdue_WhenCancelled()
+    {
+        var taskId = Guid.NewGuid();
+        var cropId = Guid.NewGuid();
+        var crop = new Crop
+        {
+            Id = cropId,
+            Name = "番茄"
+        };
+        var task = new CropCareTask
+        {
+            Id = taskId,
+            CropId = cropId,
+            TaskType = TaskType.Prune,
+            Status = TaskStatus.Cancelled,
+            ScheduledDate = DateTime.UtcNow.AddDays(-2).Date
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetByIdAsync(taskId, _cancellationToken))
+            .ReturnsAsync(task);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetByIdAsync(cropId, _cancellationToken))
+            .ReturnsAsync(crop);
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.GetCropCareTaskByIdAsync(taskId, null, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(200);
+        result.Data.Should().NotBeNull();
+        result.Data!.IsOverdue.Should().BeFalse();
+        result.Data.OverdueDays.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetCropCareTaskByIdAsync_ShouldNotMarkOverdue_WhenFutureDate()
+    {
+        var taskId = Guid.NewGuid();
+        var cropId = Guid.NewGuid();
+        var crop = new Crop
+        {
+            Id = cropId,
+            Name = "番茄"
+        };
+        var task = new CropCareTask
+        {
+            Id = taskId,
+            CropId = cropId,
+            TaskType = TaskType.Water,
+            Status = TaskStatus.Pending,
+            ScheduledDate = DateTime.UtcNow.AddDays(5).Date
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetByIdAsync(taskId, _cancellationToken))
+            .ReturnsAsync(task);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetByIdAsync(cropId, _cancellationToken))
+            .ReturnsAsync(crop);
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.GetCropCareTaskByIdAsync(taskId, null, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(200);
+        result.Data.Should().NotBeNull();
+        result.Data!.IsOverdue.Should().BeFalse();
+        result.Data.OverdueDays.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetCropCareTaskByIdAsync_ShouldNotMarkOverdue_WhenScheduledToday()
+    {
+        var taskId = Guid.NewGuid();
+        var cropId = Guid.NewGuid();
+        var crop = new Crop
+        {
+            Id = cropId,
+            Name = "番茄"
+        };
+        var task = new CropCareTask
+        {
+            Id = taskId,
+            CropId = cropId,
+            TaskType = TaskType.Water,
+            Status = TaskStatus.Pending,
+            ScheduledDate = DateTime.UtcNow.Date
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetByIdAsync(taskId, _cancellationToken))
+            .ReturnsAsync(task);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetByIdAsync(cropId, _cancellationToken))
+            .ReturnsAsync(crop);
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.GetCropCareTaskByIdAsync(taskId, null, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(200);
+        result.Data.Should().NotBeNull();
+        result.Data!.IsOverdue.Should().BeFalse();
+        result.Data.OverdueDays.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetCropCareTaskByIdAsync_ShouldReturnError_WhenTaskDoesNotExist()
+    {
+        var taskId = Guid.NewGuid();
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetByIdAsync(taskId, _cancellationToken))
+            .ReturnsAsync((CropCareTask?)null);
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.GetCropCareTaskByIdAsync(taskId, null, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(404);
+        result.Message.Should().Be("任务不存在");
+        result.Data.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetCropCareTaskByIdAsync_ShouldReturnError_WhenUserIsNotOwner()
+    {
+        var ownerId = Guid.NewGuid();
+        var otherUserId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+        var cropId = Guid.NewGuid();
+        var crop = new Crop
+        {
+            Id = cropId,
+            UserId = ownerId,
+            Name = "番茄"
+        };
+        var task = new CropCareTask
+        {
+            Id = taskId,
+            CropId = cropId,
+            TaskType = TaskType.Water,
+            Status = TaskStatus.Pending
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetByIdAsync(taskId, _cancellationToken))
+            .ReturnsAsync(task);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetByIdAsync(cropId, _cancellationToken))
+            .ReturnsAsync(crop);
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.GetCropCareTaskByIdAsync(taskId, otherUserId, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(403);
+        result.Message.Should().Be("无权访问此任务");
+        result.Data.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetCropCareTasksAsync_ShouldFilterByCropId()
+    {
+        var userId = Guid.NewGuid();
+        var cropId1 = Guid.NewGuid();
+        var cropId2 = Guid.NewGuid();
+        var crop1 = new Crop { Id = cropId1, UserId = userId, Name = "番茄" };
+        var crop2 = new Crop { Id = cropId2, UserId = userId, Name = "黄瓜" };
+
+        var tasks = new List<CropCareTask>
+        {
+            new() { Id = Guid.NewGuid(), CropId = cropId1, TaskType = TaskType.Water, Status = TaskStatus.Pending, ScheduledDate = DateTime.UtcNow.AddDays(1) },
+            new() { Id = Guid.NewGuid(), CropId = cropId2, TaskType = TaskType.Fertilize, Status = TaskStatus.Pending, ScheduledDate = DateTime.UtcNow.AddDays(2) },
+            new() { Id = Guid.NewGuid(), CropId = cropId1, TaskType = TaskType.Prune, Status = TaskStatus.Completed, ScheduledDate = DateTime.UtcNow.AddDays(-1) }
+        };
+
+        var query = new CropCareTaskQueryRequestDto
+        {
+            CropId = cropId1,
+            PageNumber = 1,
+            PageSize = 10
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetAllAsync(_cancellationToken))
+            .ReturnsAsync(tasks);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetAllAsync(_cancellationToken))
+            .ReturnsAsync(new List<Crop> { crop1, crop2 });
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.GetCropCareTasksAsync(query, null, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(200);
+        result.Data.Should().NotBeNull();
+        result.Data!.TotalCount.Should().Be(2);
+        result.Data.Items.Should().OnlyContain(t => t.CropId == cropId1);
+    }
+
+    [Fact]
+    public async Task GetCropCareTasksAsync_ShouldFilterByTaskType()
+    {
+        var cropId = Guid.NewGuid();
+        var crop = new Crop { Id = cropId, Name = "番茄" };
+
+        var tasks = new List<CropCareTask>
+        {
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Water, Status = TaskStatus.Pending, ScheduledDate = DateTime.UtcNow.AddDays(1) },
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Fertilize, Status = TaskStatus.Pending, ScheduledDate = DateTime.UtcNow.AddDays(2) },
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Water, Status = TaskStatus.Completed, ScheduledDate = DateTime.UtcNow.AddDays(-1) }
+        };
+
+        var query = new CropCareTaskQueryRequestDto
+        {
+            TaskType = TaskType.Water,
+            PageNumber = 1,
+            PageSize = 10
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetAllAsync(_cancellationToken))
+            .ReturnsAsync(tasks);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetAllAsync(_cancellationToken))
+            .ReturnsAsync(new List<Crop> { crop });
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.GetCropCareTasksAsync(query, null, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(200);
+        result.Data.Should().NotBeNull();
+        result.Data!.TotalCount.Should().Be(2);
+        result.Data.Items.Should().OnlyContain(t => t.TaskType == TaskType.Water);
+    }
+
+    [Fact]
+    public async Task GetCropCareTasksAsync_ShouldFilterByStatus()
+    {
+        var cropId = Guid.NewGuid();
+        var crop = new Crop { Id = cropId, Name = "番茄" };
+
+        var tasks = new List<CropCareTask>
+        {
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Water, Status = TaskStatus.Pending, ScheduledDate = DateTime.UtcNow.AddDays(1) },
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Fertilize, Status = TaskStatus.Completed, ScheduledDate = DateTime.UtcNow.AddDays(-1) },
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Prune, Status = TaskStatus.InProgress, ScheduledDate = DateTime.UtcNow }
+        };
+
+        var query = new CropCareTaskQueryRequestDto
+        {
+            Status = TaskStatus.Pending,
+            PageNumber = 1,
+            PageSize = 10
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetAllAsync(_cancellationToken))
+            .ReturnsAsync(tasks);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetAllAsync(_cancellationToken))
+            .ReturnsAsync(new List<Crop> { crop });
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.GetCropCareTasksAsync(query, null, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(200);
+        result.Data.Should().NotBeNull();
+        result.Data!.TotalCount.Should().Be(1);
+        result.Data.Items.Should().OnlyContain(t => t.Status == TaskStatus.Pending);
+    }
+
+    [Fact]
+    public async Task GetCropCareTasksAsync_ShouldFilterByScheduledDateFrom()
+    {
+        var cropId = Guid.NewGuid();
+        var crop = new Crop { Id = cropId, Name = "番茄" };
+        var today = DateTime.UtcNow.Date;
+
+        var tasks = new List<CropCareTask>
+        {
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Water, Status = TaskStatus.Pending, ScheduledDate = today.AddDays(-5) },
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Fertilize, Status = TaskStatus.Pending, ScheduledDate = today.AddDays(1) },
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Prune, Status = TaskStatus.Pending, ScheduledDate = today.AddDays(3) }
+        };
+
+        var query = new CropCareTaskQueryRequestDto
+        {
+            ScheduledDateFrom = today,
+            PageNumber = 1,
+            PageSize = 10
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetAllAsync(_cancellationToken))
+            .ReturnsAsync(tasks);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetAllAsync(_cancellationToken))
+            .ReturnsAsync(new List<Crop> { crop });
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.GetCropCareTasksAsync(query, null, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(200);
+        result.Data.Should().NotBeNull();
+        result.Data!.TotalCount.Should().Be(2);
+        result.Data.Items.Should().OnlyContain(t => t.ScheduledDate >= today);
+    }
+
+    [Fact]
+    public async Task GetCropCareTasksAsync_ShouldFilterByScheduledDateTo()
+    {
+        var cropId = Guid.NewGuid();
+        var crop = new Crop { Id = cropId, Name = "番茄" };
+        var today = DateTime.UtcNow.Date;
+
+        var tasks = new List<CropCareTask>
+        {
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Water, Status = TaskStatus.Pending, ScheduledDate = today.AddDays(-5) },
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Fertilize, Status = TaskStatus.Pending, ScheduledDate = today.AddDays(-1) },
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Prune, Status = TaskStatus.Pending, ScheduledDate = today.AddDays(3) }
+        };
+
+        var query = new CropCareTaskQueryRequestDto
+        {
+            ScheduledDateTo = today,
+            PageNumber = 1,
+            PageSize = 10
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetAllAsync(_cancellationToken))
+            .ReturnsAsync(tasks);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetAllAsync(_cancellationToken))
+            .ReturnsAsync(new List<Crop> { crop });
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.GetCropCareTasksAsync(query, null, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(200);
+        result.Data.Should().NotBeNull();
+        result.Data!.TotalCount.Should().Be(2);
+        result.Data.Items.Should().OnlyContain(t => t.ScheduledDate <= today);
+    }
+
+    [Fact]
+    public async Task GetCropCareTasksAsync_ShouldFilterByDateRange()
+    {
+        var cropId = Guid.NewGuid();
+        var crop = new Crop { Id = cropId, Name = "番茄" };
+        var today = DateTime.UtcNow.Date;
+
+        var tasks = new List<CropCareTask>
+        {
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Water, Status = TaskStatus.Pending, ScheduledDate = today.AddDays(-10) },
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Fertilize, Status = TaskStatus.Pending, ScheduledDate = today.AddDays(2) },
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Prune, Status = TaskStatus.Pending, ScheduledDate = today.AddDays(5) },
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Repot, Status = TaskStatus.Pending, ScheduledDate = today.AddDays(15) }
+        };
+
+        var query = new CropCareTaskQueryRequestDto
+        {
+            ScheduledDateFrom = today.AddDays(1),
+            ScheduledDateTo = today.AddDays(10),
+            PageNumber = 1,
+            PageSize = 10
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetAllAsync(_cancellationToken))
+            .ReturnsAsync(tasks);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetAllAsync(_cancellationToken))
+            .ReturnsAsync(new List<Crop> { crop });
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.GetCropCareTasksAsync(query, null, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(200);
+        result.Data.Should().NotBeNull();
+        result.Data!.TotalCount.Should().Be(2);
+        result.Data.Items.Should().OnlyContain(t =>
+            t.ScheduledDate >= today.AddDays(1) &&
+            t.ScheduledDate <= today.AddDays(10));
+    }
+
+    [Fact]
+    public async Task GetCropCareTasksAsync_ShouldFilterByUserId()
+    {
+        var userId1 = Guid.NewGuid();
+        var userId2 = Guid.NewGuid();
+        var cropId1 = Guid.NewGuid();
+        var cropId2 = Guid.NewGuid();
+        var crop1 = new Crop { Id = cropId1, UserId = userId1, Name = "番茄" };
+        var crop2 = new Crop { Id = cropId2, UserId = userId2, Name = "黄瓜" };
+
+        var tasks = new List<CropCareTask>
+        {
+            new() { Id = Guid.NewGuid(), CropId = cropId1, TaskType = TaskType.Water, Status = TaskStatus.Pending, ScheduledDate = DateTime.UtcNow.AddDays(1) },
+            new() { Id = Guid.NewGuid(), CropId = cropId2, TaskType = TaskType.Fertilize, Status = TaskStatus.Pending, ScheduledDate = DateTime.UtcNow.AddDays(2) },
+            new() { Id = Guid.NewGuid(), CropId = cropId1, TaskType = TaskType.Prune, Status = TaskStatus.Completed, ScheduledDate = DateTime.UtcNow.AddDays(-1) }
+        };
+
+        var query = new CropCareTaskQueryRequestDto
+        {
+            PageNumber = 1,
+            PageSize = 10
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetAllAsync(_cancellationToken))
+            .ReturnsAsync(tasks);
+
+        _unitOfWorkMock.Setup(u => u.Crops.FindAsync(
+                It.IsAny<System.Linq.Expressions.Expression<Func<Crop, bool>>>(),
+                _cancellationToken))
+            .ReturnsAsync(new List<Crop> { crop1 });
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetAllAsync(_cancellationToken))
+            .ReturnsAsync(new List<Crop> { crop1, crop2 });
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.GetCropCareTasksAsync(query, userId1, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(200);
+        result.Data.Should().NotBeNull();
+        result.Data!.TotalCount.Should().Be(2);
+        result.Data.Items.Should().OnlyContain(t => t.CropId == cropId1);
+    }
+
+    [Fact]
+    public async Task GetCropCareTasksAsync_ShouldReturnCorrectPagination()
+    {
+        var cropId = Guid.NewGuid();
+        var crop = new Crop { Id = cropId, Name = "番茄" };
+
+        var tasks = new List<CropCareTask>();
+        for (int i = 0; i < 15; i++)
+        {
+            tasks.Add(new CropCareTask
+            {
+                Id = Guid.NewGuid(),
+                CropId = cropId,
+                TaskType = TaskType.Water,
+                Status = TaskStatus.Pending,
+                ScheduledDate = DateTime.UtcNow.AddDays(-i)
+            });
+        }
+
+        var query = new CropCareTaskQueryRequestDto
+        {
+            PageNumber = 2,
+            PageSize = 5
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetAllAsync(_cancellationToken))
+            .ReturnsAsync(tasks);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetAllAsync(_cancellationToken))
+            .ReturnsAsync(new List<Crop> { crop });
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.GetCropCareTasksAsync(query, null, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(200);
+        result.Data.Should().NotBeNull();
+        result.Data!.TotalCount.Should().Be(15);
+        result.Data.PageNumber.Should().Be(2);
+        result.Data.PageSize.Should().Be(5);
+        result.Data.TotalPages.Should().Be(3);
+        result.Data.Items.Should().HaveCount(5);
+        result.Data.HasPrevious.Should().BeTrue();
+        result.Data.HasNext.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetCropCareTasksAsync_ShouldSortByScheduledDateDesc_ByDefault()
+    {
+        var cropId = Guid.NewGuid();
+        var crop = new Crop { Id = cropId, Name = "番茄" };
+        var today = DateTime.UtcNow.Date;
+
+        var tasks = new List<CropCareTask>
+        {
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Water, Status = TaskStatus.Pending, ScheduledDate = today.AddDays(1) },
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Fertilize, Status = TaskStatus.Pending, ScheduledDate = today.AddDays(5) },
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Prune, Status = TaskStatus.Pending, ScheduledDate = today.AddDays(3) }
+        };
+
+        var query = new CropCareTaskQueryRequestDto
+        {
+            PageNumber = 1,
+            PageSize = 10
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetAllAsync(_cancellationToken))
+            .ReturnsAsync(tasks);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetAllAsync(_cancellationToken))
+            .ReturnsAsync(new List<Crop> { crop });
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.GetCropCareTasksAsync(query, null, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(200);
+        result.Data.Should().NotBeNull();
+
+        var itemsList = result.Data!.Items.ToList();
+        itemsList.Should().HaveCount(3);
+        itemsList[0].ScheduledDate.Should().Be(today.AddDays(5));
+        itemsList[1].ScheduledDate.Should().Be(today.AddDays(3));
+        itemsList[2].ScheduledDate.Should().Be(today.AddDays(1));
+    }
+
+    [Fact]
+    public async Task GetCropCareTasksAsync_ShouldSortByTaskTypeAsc_WhenSpecified()
+    {
+        var cropId = Guid.NewGuid();
+        var crop = new Crop { Id = cropId, Name = "番茄" };
+
+        var tasks = new List<CropCareTask>
+        {
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Water, Status = TaskStatus.Pending, ScheduledDate = DateTime.UtcNow.AddDays(1) },
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Fertilize, Status = TaskStatus.Pending, ScheduledDate = DateTime.UtcNow.AddDays(2) },
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Prune, Status = TaskStatus.Pending, ScheduledDate = DateTime.UtcNow.AddDays(3) }
+        };
+
+        var query = new CropCareTaskQueryRequestDto
+        {
+            SortBy = "tasktype",
+            SortOrder = "asc",
+            PageNumber = 1,
+            PageSize = 10
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetAllAsync(_cancellationToken))
+            .ReturnsAsync(tasks);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetAllAsync(_cancellationToken))
+            .ReturnsAsync(new List<Crop> { crop });
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.GetCropCareTasksAsync(query, null, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(200);
+        result.Data.Should().NotBeNull();
+
+        var itemsList = result.Data!.Items.ToList();
+        itemsList.Should().HaveCount(3);
+        itemsList[0].TaskType.Should().Be(TaskType.Water);
+        itemsList[1].TaskType.Should().Be(TaskType.Fertilize);
+        itemsList[2].TaskType.Should().Be(TaskType.Prune);
+    }
+
+    [Fact]
+    public async Task GetCropCareTasksAsync_ShouldCombineMultipleFilters()
+    {
+        var cropId1 = Guid.NewGuid();
+        var cropId2 = Guid.NewGuid();
+        var crop1 = new Crop { Id = cropId1, Name = "番茄" };
+        var crop2 = new Crop { Id = cropId2, Name = "黄瓜" };
+        var today = DateTime.UtcNow.Date;
+
+        var tasks = new List<CropCareTask>
+        {
+            new() { Id = Guid.NewGuid(), CropId = cropId1, TaskType = TaskType.Water, Status = TaskStatus.Pending, ScheduledDate = today.AddDays(1) },
+            new() { Id = Guid.NewGuid(), CropId = cropId1, TaskType = TaskType.Water, Status = TaskStatus.Completed, ScheduledDate = today.AddDays(-1) },
+            new() { Id = Guid.NewGuid(), CropId = cropId2, TaskType = TaskType.Water, Status = TaskStatus.Pending, ScheduledDate = today.AddDays(2) },
+            new() { Id = Guid.NewGuid(), CropId = cropId1, TaskType = TaskType.Fertilize, Status = TaskStatus.Pending, ScheduledDate = today.AddDays(3) }
+        };
+
+        var query = new CropCareTaskQueryRequestDto
+        {
+            CropId = cropId1,
+            TaskType = TaskType.Water,
+            Status = TaskStatus.Pending,
+            ScheduledDateFrom = today,
+            PageNumber = 1,
+            PageSize = 10
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetAllAsync(_cancellationToken))
+            .ReturnsAsync(tasks);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetAllAsync(_cancellationToken))
+            .ReturnsAsync(new List<Crop> { crop1, crop2 });
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.GetCropCareTasksAsync(query, null, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(200);
+        result.Data.Should().NotBeNull();
+        result.Data!.TotalCount.Should().Be(1);
+
+        var item = result.Data.Items.First();
+        item.CropId.Should().Be(cropId1);
+        item.TaskType.Should().Be(TaskType.Water);
+        item.Status.Should().Be(TaskStatus.Pending);
+        item.ScheduledDate.Should().Be(today.AddDays(1));
+    }
+
+    [Fact]
+    public async Task GetCropCareTasksAsync_ShouldSetOverdueInfoForAllItems()
+    {
+        var cropId = Guid.NewGuid();
+        var crop = new Crop { Id = cropId, Name = "番茄" };
+        var today = DateTime.UtcNow.Date;
+
+        var tasks = new List<CropCareTask>
+        {
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Water, Status = TaskStatus.Pending, ScheduledDate = today.AddDays(-3) },
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Fertilize, Status = TaskStatus.Completed, ScheduledDate = today.AddDays(-5) },
+            new() { Id = Guid.NewGuid(), CropId = cropId, TaskType = TaskType.Prune, Status = TaskStatus.Pending, ScheduledDate = today.AddDays(2) }
+        };
+
+        var query = new CropCareTaskQueryRequestDto
+        {
+            PageNumber = 1,
+            PageSize = 10
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetAllAsync(_cancellationToken))
+            .ReturnsAsync(tasks);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetAllAsync(_cancellationToken))
+            .ReturnsAsync(new List<Crop> { crop });
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.GetCropCareTasksAsync(query, null, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(200);
+        result.Data.Should().NotBeNull();
+
+        var itemsList = result.Data!.Items.ToList();
+        itemsList.Should().HaveCount(3);
+
+        var overdueTask = itemsList.First(t => t.TaskType == TaskType.Water);
+        overdueTask.IsOverdue.Should().BeTrue();
+        overdueTask.OverdueDays.Should().Be(3);
+
+        var completedTask = itemsList.First(t => t.TaskType == TaskType.Fertilize);
+        completedTask.IsOverdue.Should().BeFalse();
+        completedTask.OverdueDays.Should().BeNull();
+
+        var futureTask = itemsList.First(t => t.TaskType == TaskType.Prune);
+        futureTask.IsOverdue.Should().BeFalse();
+        futureTask.OverdueDays.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task CreateCropCareTaskAsync_ShouldReturnError_WhenCropDoesNotExist()
+    {
+        var userId = Guid.NewGuid();
+        var cropId = Guid.NewGuid();
+
+        var createDto = new CreateCropCareTaskRequestDto
+        {
+            CropId = cropId,
+            TaskType = TaskType.Water,
+            ScheduledDate = DateTime.UtcNow.AddDays(1)
+        };
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetByIdAsync(cropId, _cancellationToken))
+            .ReturnsAsync((Crop?)null);
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.CreateCropCareTaskAsync(createDto, userId, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(404);
+        result.Message.Should().Be("作物不存在");
+        result.Data.Should().BeNull();
+
+        _unitOfWorkMock.Verify(u => u.CropCareTasks.AddAsync(It.IsAny<CropCareTask>(), _cancellationToken), Times.Never);
+    }
+
+    [Fact]
+    public async Task CreateCropCareTaskAsync_ShouldReturnError_WhenUserIsNotCropOwner()
+    {
+        var ownerId = Guid.NewGuid();
+        var otherUserId = Guid.NewGuid();
+        var cropId = Guid.NewGuid();
+        var crop = new Crop
+        {
+            Id = cropId,
+            UserId = ownerId,
+            Name = "番茄"
+        };
+
+        var createDto = new CreateCropCareTaskRequestDto
+        {
+            CropId = cropId,
+            TaskType = TaskType.Water,
+            ScheduledDate = DateTime.UtcNow.AddDays(1)
+        };
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetByIdAsync(cropId, _cancellationToken))
+            .ReturnsAsync(crop);
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.CreateCropCareTaskAsync(createDto, otherUserId, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(403);
+        result.Message.Should().Be("无权为此作物创建任务");
+        result.Data.Should().BeNull();
+
+        _unitOfWorkMock.Verify(u => u.CropCareTasks.AddAsync(It.IsAny<CropCareTask>(), _cancellationToken), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateCropCareTaskAsync_ShouldReturnError_WhenTaskDoesNotExist()
+    {
+        var userId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+
+        var updateDto = new UpdateCropCareTaskRequestDto
+        {
+            Note = "更新备注"
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetByIdAsync(taskId, _cancellationToken))
+            .ReturnsAsync((CropCareTask?)null);
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.UpdateCropCareTaskAsync(taskId, updateDto, userId, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(404);
+        result.Message.Should().Be("任务不存在");
+        result.Data.Should().BeNull();
+
+        _unitOfWorkMock.Verify(u => u.CropCareTasks.UpdateAsync(It.IsAny<CropCareTask>(), _cancellationToken), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateCropCareTaskAsync_ShouldReturnError_WhenUserIsNotOwner()
+    {
+        var ownerId = Guid.NewGuid();
+        var otherUserId = Guid.NewGuid();
+        var cropId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+        var crop = new Crop
+        {
+            Id = cropId,
+            UserId = ownerId,
+            Name = "番茄"
+        };
+        var task = new CropCareTask
+        {
+            Id = taskId,
+            CropId = cropId,
+            TaskType = TaskType.Water,
+            Status = TaskStatus.Pending
+        };
+
+        var updateDto = new UpdateCropCareTaskRequestDto
+        {
+            Note = "更新备注"
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetByIdAsync(taskId, _cancellationToken))
+            .ReturnsAsync(task);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetByIdAsync(cropId, _cancellationToken))
+            .ReturnsAsync(crop);
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.UpdateCropCareTaskAsync(taskId, updateDto, otherUserId, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(403);
+        result.Message.Should().Be("无权修改此任务");
+        result.Data.Should().BeNull();
+
+        _unitOfWorkMock.Verify(u => u.CropCareTasks.UpdateAsync(It.IsAny<CropCareTask>(), _cancellationToken), Times.Never);
+    }
+
+    [Fact]
+    public async Task DeleteCropCareTaskAsync_ShouldReturnError_WhenTaskDoesNotExist()
+    {
+        var userId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetByIdAsync(taskId, _cancellationToken))
+            .ReturnsAsync((CropCareTask?)null);
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.DeleteCropCareTaskAsync(taskId, userId, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(404);
+        result.Message.Should().Be("任务不存在");
+
+        _unitOfWorkMock.Verify(u => u.CropCareTasks.DeleteAsync(It.IsAny<CropCareTask>(), _cancellationToken), Times.Never);
+    }
+
+    [Fact]
+    public async Task DeleteCropCareTaskAsync_ShouldReturnError_WhenUserIsNotOwner()
+    {
+        var ownerId = Guid.NewGuid();
+        var otherUserId = Guid.NewGuid();
+        var cropId = Guid.NewGuid();
+        var taskId = Guid.NewGuid();
+        var crop = new Crop
+        {
+            Id = cropId,
+            UserId = ownerId,
+            Name = "番茄"
+        };
+        var task = new CropCareTask
+        {
+            Id = taskId,
+            CropId = cropId,
+            TaskType = TaskType.Water,
+            Status = TaskStatus.Pending
+        };
+
+        _unitOfWorkMock.Setup(u => u.CropCareTasks.GetByIdAsync(taskId, _cancellationToken))
+            .ReturnsAsync(task);
+
+        _unitOfWorkMock.Setup(u => u.Crops.GetByIdAsync(cropId, _cancellationToken))
+            .ReturnsAsync(crop);
+
+        var taskService = new CropCareTaskService(_unitOfWorkMock.Object, _taskLoggerMock.Object);
+
+        var result = await taskService.DeleteCropCareTaskAsync(taskId, otherUserId, _cancellationToken);
+
+        result.Should().NotBeNull();
+        result.Code.Should().Be(403);
+        result.Message.Should().Be("无权删除此任务");
+
+        _unitOfWorkMock.Verify(u => u.CropCareTasks.DeleteAsync(It.IsAny<CropCareTask>(), _cancellationToken), Times.Never);
+    }
+
     #endregion
 }
