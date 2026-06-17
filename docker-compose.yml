@@ -1,0 +1,49 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    container_name: balconyfarm_app
+    ports:
+      - "8085:8085"
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=balconyfarm
+      - DB_USER=app_user
+      - DB_PASSWORD=app_pass
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    container_name: balconyfarm_mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_pass
+      - MYSQL_DATABASE=balconyfarm
+      - MYSQL_USER=app_user
+      - MYSQL_PASSWORD=app_pass
+    ports:
+      - "13310:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  adminer:
+    image: adminer:latest
+    container_name: balconyfarm_adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  mysql_data:

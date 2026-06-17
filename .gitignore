@@ -1,0 +1,43 @@
+# .NET / ASP.NET Core
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+*.swp
+*.log
+
+# Secrets & local config
+appsettings.Development.json
+appsettings.Local.json
+.env
+.env.local
+
+# Test results
+TestResults/
+coverage/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+logs/
+*.txt
+
+# Docker
+docker-compose.override.yml
+
+# NuGet
+*.nupkg
+*.snupkg
+
+# Build artifacts
+publish/
+artifacts/

@@ -1,0 +1,354 @@
+[
+  {
+    "name": "小番茄",
+    "variety": "千禧樱桃番茄",
+    "difficulty": "简单",
+    "growthDays": "90-120天",
+    "tips": "喜阳光，需要充足日照，保持土壤湿润但不积水",
+    "suitableLocation": "南阳台、东阳台",
+    "defaultLocation": "南阳台",
+    "defaultContainerType": "塑料花盆",
+    "suitableMonthsByZone": {
+      "温带": [3, 4, 5, 8, 9],
+      "亚热带": [2, 3, 4, 9, 10],
+      "南亚热带": [1, 2, 3, 10, 11],
+      "热带": [10, 11, 12, 1]
+    }
+  },
+  {
+    "name": "生菜",
+    "variety": "奶油生菜",
+    "difficulty": "简单",
+    "growthDays": "40-60天",
+    "tips": "喜凉爽，避免高温暴晒，保持土壤湿润",
+    "suitableLocation": "东阳台、西阳台、北阳台",
+    "defaultLocation": "东阳台",
+    "defaultContainerType": "种植箱",
+    "suitableMonthsByZone": {
+      "温带": [3, 4, 5, 8, 9, 10],
+      "亚热带": [2, 3, 4, 10, 11],
+      "南亚热带": [10, 11, 12, 1, 2],
+      "热带": [11, 12, 1, 2]
+    }
+  },
+  {
+    "name": "小白菜",
+    "variety": "上海青",
+    "difficulty": "简单",
+    "growthDays": "30-45天",
+    "tips": "生长速度快，需要充足水分和肥料",
+    "suitableLocation": "南阳台、东阳台",
+    "defaultLocation": "南阳台",
+    "defaultContainerType": "种植箱",
+    "suitableMonthsByZone": {
+      "温带": [3, 4, 5, 8, 9, 10],
+      "亚热带": [2, 3, 4, 9, 10, 11],
+      "南亚热带": [10, 11, 12, 1, 2, 3],
+      "热带": [11, 12, 1, 2]
+    }
+  },
+  {
+    "name": "辣椒",
+    "variety": "小米椒",
+    "difficulty": "中等",
+    "growthDays": "90-150天",
+    "tips": "喜温暖阳光，开花结果期需要充足磷钾肥",
+    "suitableLocation": "南阳台、西阳台",
+    "defaultLocation": "南阳台",
+    "defaultContainerType": "塑料花盆",
+    "suitableMonthsByZone": {
+      "温带": [3, 4, 5],
+      "亚热带": [2, 3, 4, 5],
+      "南亚热带": [1, 2, 3],
+      "热带": [11, 12, 1, 2]
+    }
+  },
+  {
+    "name": "黄瓜",
+    "variety": "水果黄瓜",
+    "difficulty": "中等",
+    "growthDays": "55-70天",
+    "tips": "需要搭架攀爬，喜水肥，开花结果期注意授粉",
+    "suitableLocation": "南阳台（需搭架）",
+    "defaultLocation": "南阳台",
+    "defaultContainerType": "深口花盆",
+    "suitableMonthsByZone": {
+      "温带": [4, 5, 6, 7, 8],
+      "亚热带": [3, 4, 5, 8, 9],
+      "南亚热带": [2, 3, 4, 9, 10],
+      "热带": [10, 11, 12, 1, 2]
+    }
+  },
+  {
+    "name": "香菜",
+    "variety": "大叶香菜",
+    "difficulty": "简单",
+    "growthDays": "40-60天",
+    "tips": "喜凉爽，不耐高温，夏季种植需要遮阴",
+    "suitableLocation": "东阳台、北阳台",
+    "defaultLocation": "东阳台",
+    "defaultContainerType": "塑料花盆",
+    "suitableMonthsByZone": {
+      "温带": [3, 4, 5, 9, 10],
+      "亚热带": [2, 3, 4, 10, 11],
+      "南亚热带": [10, 11, 12, 1, 2],
+      "热带": [11, 12, 1, 2]
+    }
+  },
+  {
+    "name": "小葱",
+    "variety": "四季小葱",
+    "difficulty": "简单",
+    "growthDays": "50-70天",
+    "tips": "可多次采收，保持土壤湿润，定期追施氮肥",
+    "suitableLocation": "南阳台、东阳台",
+    "defaultLocation": "南阳台",
+    "defaultContainerType": "塑料花盆",
+    "suitableMonthsByZone": {
+      "温带": [3, 4, 5, 6, 8, 9, 10],
+      "亚热带": [1, 2, 3, 4, 9, 10, 11, 12],
+      "南亚热带": [1, 2, 3, 4, 10, 11, 12],
+      "热带": [1, 2, 10, 11, 12]
+    }
+  },
+  {
+    "name": "大蒜",
+    "variety": "紫皮大蒜",
+    "difficulty": "简单",
+    "growthDays": "90-120天",
+    "tips": "需低温春化才能抽薹结蒜，秋季种植最佳",
+    "suitableLocation": "南阳台、东阳台",
+    "defaultLocation": "南阳台",
+    "defaultContainerType": "深口花盆",
+    "suitableMonthsByZone": {
+      "温带": [9, 10],
+      "亚热带": [10, 11],
+      "南亚热带": [11, 12],
+      "热带": [11, 12]
+    }
+  },
+  {
+    "name": "菠菜",
+    "variety": "大叶菠菜",
+    "difficulty": "简单",
+    "growthDays": "40-60天",
+    "tips": "喜凉爽，25度以上容易抽薹，适合春秋种植",
+    "suitableLocation": "东阳台、西阳台",
+    "defaultLocation": "东阳台",
+    "defaultContainerType": "种植箱",
+    "suitableMonthsByZone": {
+      "温带": [3, 4, 8, 9, 10],
+      "亚热带": [2, 3, 10, 11, 12],
+      "南亚热带": [10, 11, 12, 1, 2],
+      "热带": [11, 12, 1]
+    }
+  },
+  {
+    "name": "韭菜",
+    "variety": "宽叶韭菜",
+    "difficulty": "简单",
+    "growthDays": "60-90天（可多年采收）",
+    "tips": "多年生蔬菜，可多次收割，割后追施氮肥促进再生",
+    "suitableLocation": "南阳台、东阳台",
+    "defaultLocation": "南阳台",
+    "defaultContainerType": "种植箱",
+    "suitableMonthsByZone": {
+      "温带": [3, 4, 5, 8, 9],
+      "亚热带": [2, 3, 4, 9, 10],
+      "南亚热带": [1, 2, 3, 10, 11, 12],
+      "热带": [1, 2, 11, 12]
+    }
+  },
+  {
+    "name": "茄子",
+    "variety": "紫长茄",
+    "difficulty": "中等",
+    "growthDays": "100-150天",
+    "tips": "喜高温阳光，结果期需要充足水肥，注意防治病虫害",
+    "suitableLocation": "南阳台、西阳台",
+    "defaultLocation": "南阳台",
+    "defaultContainerType": "深口花盆",
+    "suitableMonthsByZone": {
+      "温带": [3, 4, 5],
+      "亚热带": [2, 3, 4],
+      "南亚热带": [1, 2, 3, 10],
+      "热带": [11, 12, 1]
+    }
+  },
+  {
+    "name": "空心菜",
+    "variety": "青梗空心菜",
+    "difficulty": "简单",
+    "growthDays": "35-50天",
+    "tips": "喜高温高湿，可水培或土培，多次采收",
+    "suitableLocation": "南阳台、东阳台",
+    "defaultLocation": "南阳台",
+    "defaultContainerType": "种植箱",
+    "suitableMonthsByZone": {
+      "温带": [5, 6, 7, 8],
+      "亚热带": [4, 5, 6, 7, 8, 9],
+      "南亚热带": [3, 4, 5, 6, 9, 10],
+      "热带": [1, 2, 3, 4, 10, 11, 12]
+    }
+  },
+  {
+    "name": "苋菜",
+    "variety": "红苋菜",
+    "difficulty": "简单",
+    "growthDays": "35-50天",
+    "tips": "喜高温，耐热性强，生长速度快",
+    "suitableLocation": "南阳台",
+    "defaultLocation": "南阳台",
+    "defaultContainerType": "种植箱",
+    "suitableMonthsByZone": {
+      "温带": [5, 6, 7, 8],
+      "亚热带": [4, 5, 6, 7, 8, 9],
+      "南亚热带": [3, 4, 5, 6, 9, 10],
+      "热带": [1, 2, 3, 4, 10, 11, 12]
+    }
+  },
+  {
+    "name": "茼蒿",
+    "variety": "小叶茼蒿",
+    "difficulty": "简单",
+    "growthDays": "40-55天",
+    "tips": "喜冷凉，不耐高温，适合春秋种植",
+    "suitableLocation": "东阳台、西阳台",
+    "defaultLocation": "东阳台",
+    "defaultContainerType": "塑料花盆",
+    "suitableMonthsByZone": {
+      "温带": [3, 4, 5, 9, 10],
+      "亚热带": [2, 3, 4, 10, 11],
+      "南亚热带": [10, 11, 12, 1, 2],
+      "热带": [11, 12, 1, 2]
+    }
+  },
+  {
+    "name": "萝卜",
+    "variety": "樱桃萝卜",
+    "difficulty": "简单",
+    "growthDays": "30-45天",
+    "tips": "根部蔬菜，需要疏松土壤，保持水分均匀",
+    "suitableLocation": "南阳台、东阳台（深盆）",
+    "defaultLocation": "南阳台",
+    "defaultContainerType": "深口花盆",
+    "suitableMonthsByZone": {
+      "温带": [3, 4, 5, 8, 9, 10],
+      "亚热带": [2, 3, 4, 10, 11],
+      "南亚热带": [10, 11, 12, 1, 2],
+      "热带": [11, 12, 1]
+    }
+  },
+  {
+    "name": "草莓",
+    "variety": "红颜草莓",
+    "difficulty": "中等",
+    "growthDays": "90-120天（多年生）",
+    "tips": "喜凉爽阳光，开花期注意授粉，结果期追施磷钾肥",
+    "suitableLocation": "南阳台、东阳台",
+    "defaultLocation": "南阳台",
+    "defaultContainerType": "塑料花盆",
+    "suitableMonthsByZone": {
+      "温带": [8, 9, 10],
+      "亚热带": [9, 10, 11],
+      "南亚热带": [10, 11, 12],
+      "热带": [11, 12, 1]
+    }
+  },
+  {
+    "name": "油麦菜",
+    "variety": "香油麦菜",
+    "difficulty": "简单",
+    "growthDays": "35-50天",
+    "tips": "生长快速，喜凉爽湿润，避免暴晒",
+    "suitableLocation": "东阳台、西阳台",
+    "defaultLocation": "东阳台",
+    "defaultContainerType": "种植箱",
+    "suitableMonthsByZone": {
+      "温带": [3, 4, 5, 8, 9, 10],
+      "亚热带": [2, 3, 4, 9, 10, 11],
+      "南亚热带": [10, 11, 12, 1, 2, 3],
+      "热带": [11, 12, 1, 2]
+    }
+  },
+  {
+    "name": "苦菊",
+    "variety": "碎叶苦菊",
+    "difficulty": "简单",
+    "growthDays": "40-60天",
+    "tips": "喜凉爽，耐寒性好，微苦口感",
+    "suitableLocation": "东阳台、北阳台",
+    "defaultLocation": "东阳台",
+    "defaultContainerType": "塑料花盆",
+    "suitableMonthsByZone": {
+      "温带": [3, 4, 5, 9, 10],
+      "亚热带": [2, 3, 4, 10, 11],
+      "南亚热带": [10, 11, 12, 1, 2],
+      "热带": [11, 12, 1]
+    }
+  },
+  {
+    "name": "荆芥",
+    "variety": "河南荆芥",
+    "difficulty": "简单",
+    "growthDays": "45-60天",
+    "tips": "耐热耐旱，香味浓郁，可多次采收",
+    "suitableLocation": "南阳台、西阳台",
+    "defaultLocation": "南阳台",
+    "defaultContainerType": "塑料花盆",
+    "suitableMonthsByZone": {
+      "温带": [4, 5, 6, 7, 8],
+      "亚热带": [3, 4, 5, 6, 7, 8, 9],
+      "南亚热带": [2, 3, 4, 9, 10],
+      "热带": [1, 2, 10, 11, 12]
+    }
+  },
+  {
+    "name": "罗勒",
+    "variety": "甜罗勒",
+    "difficulty": "简单",
+    "growthDays": "50-70天",
+    "tips": "喜温暖阳光，香气浓郁，经常掐顶促进分枝",
+    "suitableLocation": "南阳台、西阳台",
+    "defaultLocation": "南阳台",
+    "defaultContainerType": "塑料花盆",
+    "suitableMonthsByZone": {
+      "温带": [4, 5, 6, 7, 8],
+      "亚热带": [3, 4, 5, 6, 7, 8, 9],
+      "南亚热带": [2, 3, 4, 9, 10, 11],
+      "热带": [1, 2, 10, 11, 12]
+    }
+  },
+  {
+    "name": "薄荷",
+    "variety": "留兰香薄荷",
+    "difficulty": "简单",
+    "growthDays": "50-70天（多年生）",
+    "tips": "繁殖能力强，喜湿润阳光，可水培",
+    "suitableLocation": "东阳台、西阳台",
+    "defaultLocation": "东阳台",
+    "defaultContainerType": "塑料花盆",
+    "suitableMonthsByZone": {
+      "温带": [3, 4, 5, 8, 9],
+      "亚热带": [2, 3, 4, 9, 10],
+      "南亚热带": [1, 2, 3, 10, 11, 12],
+      "热带": [1, 2, 10, 11, 12]
+    }
+  },
+  {
+    "name": "紫苏",
+    "variety": "紫叶紫苏",
+    "difficulty": "简单",
+    "growthDays": "50-70天",
+    "tips": "喜温暖，叶片紫红色，具有特殊香气",
+    "suitableLocation": "南阳台、西阳台",
+    "defaultLocation": "南阳台",
+    "defaultContainerType": "塑料花盆",
+    "suitableMonthsByZone": {
+      "温带": [4, 5, 6, 7, 8],
+      "亚热带": [3, 4, 5, 6, 7, 8, 9],
+      "南亚热带": [2, 3, 4, 9, 10],
+      "热带": [1, 2, 10, 11, 12]
+    }
+  }
+]

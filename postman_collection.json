@@ -1,0 +1,1331 @@
+{
+  "info": {
+    "name": "BalconyFarm API 测试集合",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0",
+    "description": "阳台种菜助手 API 完整测试集合，包含所有接口的功能测试"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8085",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "test_user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "test_crop_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "test_task_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "test_harvest_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "test_pest_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. 健康检查",
+      "item": [
+        {
+          "name": "健康检查接口",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1. 用户认证模块",
+      "item": [
+        {
+          "name": "1.1 用户注册 - 新用户",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser_{{$randomInt}}\",\n  \"email\": \"testuser_{{$randomInt}}@example.com\",\n  \"password\": \"password123\",\n  \"avatar\": \"https://example.com/avatar.jpg\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"返回 code 为 200\", function () {",
+                  "    pm.expect(jsonData.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.test(\"返回 token\", function () {",
+                  "    pm.expect(jsonData.data.token).to.be.a('string');",
+                  "    pm.expect(jsonData.data.token).to.have.length.above(0);",
+                  "});",
+                  "",
+                  "pm.test(\"返回用户信息\", function () {",
+                  "    pm.expect(jsonData.data.user).to.be.an('object');",
+                  "    pm.expect(jsonData.data.user.id).to.be.a('string');",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set(\"auth_token\", jsonData.data.token);",
+                  "pm.collectionVariables.set(\"test_user_id\", jsonData.data.user.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.2 用户登录 - 使用演示账号",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usernameOrEmail\": \"gardener1\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"返回 code 为 200\", function () {",
+                  "    pm.expect(jsonData.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.test(\"返回 token\", function () {",
+                  "    pm.expect(jsonData.data.token).to.be.a('string');",
+                  "    pm.expect(jsonData.data.token).to.have.length.above(0);",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set(\"auth_token\", jsonData.data.token);",
+                  "pm.collectionVariables.set(\"test_user_id\", jsonData.data.user.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.3 获取当前用户信息",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"返回 code 为 200\", function () {",
+                  "    pm.expect(jsonData.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.test(\"返回用户信息\", function () {",
+                  "    pm.expect(jsonData.data).to.be.an('object');",
+                  "    pm.expect(jsonData.data.username).to.be.a('string');",
+                  "    pm.expect(jsonData.data.email).to.be.a('string');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.4 更新个人信息",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"avatar\": \"https://example.com/new-avatar.jpg\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"返回 code 为 200\", function () {",
+                  "    pm.expect(jsonData.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.test(\"头像更新成功\", function () {",
+                  "    pm.expect(jsonData.data.avatar).to.eql(\"https://example.com/new-avatar.jpg\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "1.5 未授权访问测试",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"未携带 Token 返回 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. 作物管理模块",
+      "item": [
+        {
+          "name": "2.1 创建作物",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"草莓\",\n  \"variety\": \"红颜草莓\",\n  \"plantingDate\": \"2024-01-15T00:00:00Z\",\n  \"location\": \"南阳台\",\n  \"containerType\": \"塑料花盆\",\n  \"status\": \"Growing\",\n  \"photoUrl\": \"https://example.com/strawberry.jpg\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/crops",
+              "host": ["{{base_url}}"],
+              "path": ["api", "crops"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"返回 code 为 200\", function () {",
+                  "    pm.expect(jsonData.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.test(\"返回作物信息\", function () {",
+                  "    pm.expect(jsonData.data).to.be.an('object');",
+                  "    pm.expect(jsonData.data.id).to.be.a('string');",
+                  "    pm.expect(jsonData.data.name).to.eql(\"草莓\");",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set(\"test_crop_id\", jsonData.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.2 获取作物列表 - 匿名访问",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/crops?pageNumber=1&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "crops"],
+              "query": [
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"返回 code 为 200\", function () {",
+                  "    pm.expect(jsonData.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.test(\"返回分页数据\", function () {",
+                  "    pm.expect(jsonData.data.items).to.be.an('array');",
+                  "    pm.expect(jsonData.data.totalCount).to.be.a('number');",
+                  "    pm.expect(jsonData.data.pageNumber).to.eql(1);",
+                  "    pm.expect(jsonData.data.pageSize).to.eql(10);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.3 获取我的作物列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/crops/mine?pageNumber=1&pageSize=10&status=Growing",
+              "host": ["{{base_url}}"],
+              "path": ["api", "crops", "mine"],
+              "query": [
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "Growing"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"返回 code 为 200\", function () {",
+                  "    pm.expect(jsonData.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.test(\"返回我的作物列表\", function () {",
+                  "    pm.expect(jsonData.data.items).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.4 获取作物详情",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/crops/{{test_crop_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "crops", "{{test_crop_id}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"返回 code 为 200\", function () {",
+                  "    pm.expect(jsonData.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.test(\"返回作物详情\", function () {",
+                  "    pm.expect(jsonData.data.id).to.eql(pm.collectionVariables.get(\"test_crop_id\"));",
+                  "    pm.expect(jsonData.data.name).to.eql(\"草莓\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.5 更新作物信息",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"location\": \"东阳台\",\n  \"containerType\": \"陶瓷花盆\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/crops/{{test_crop_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "crops", "{{test_crop_id}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"返回 code 为 200\", function () {",
+                  "    pm.expect(jsonData.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.test(\"作物信息更新成功\", function () {",
+                  "    pm.expect(jsonData.data.location).to.eql(\"东阳台\");",
+                  "    pm.expect(jsonData.data.containerType).to.eql(\"陶瓷花盆\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.6 修改作物状态",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Harvesting\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/crops/{{test_crop_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "crops", "{{test_crop_id}}", "status"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"返回 code 为 200\", function () {",
+                  "    pm.expect(jsonData.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.test(\"作物状态更新成功\", function () {",
+                  "    pm.expect(jsonData.data.status).to.eql(\"Harvesting\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "2.7 作物列表搜索筛选",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/crops?pageNumber=1&pageSize=10&searchKeyword=番茄&status=Growing&sortBy=createdAt&sortOrder=desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "crops"],
+              "query": [
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                },
+                {
+                  "key": "searchKeyword",
+                  "value": "番茄"
+                },
+                {
+                  "key": "status",
+                  "value": "Growing"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt"
+                },
+                {
+                  "key": "sortOrder",
+                  "value": "desc"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"返回 code 为 200\", function () {",
+                  "    pm.expect(jsonData.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.test(\"返回筛选结果\", function () {",
+                  "    pm.expect(jsonData.data.items).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. 养护任务管理模块",
+      "item": [
+        {
+          "name": "3.1 创建养护任务",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cropId\": \"{{test_crop_id}}\",\n  \"taskType\": \"Water\",\n  \"scheduledDate\": \"2024-02-01T10:00:00Z\",\n  \"note\": \"浇水300ml\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cropcaretasks",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cropcaretasks"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"返回 code 为 200\", function () {",
+                  "    pm.expect(jsonData.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.test(\"返回任务信息\", function () {",
+                  "    pm.expect(jsonData.data).to.be.an('object');",
+                  "    pm.expect(jsonData.data.id).to.be.a('string');",
+                  "    pm.expect(jsonData.data.taskType).to.eql(\"Water\");",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set(\"test_task_id\", jsonData.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.2 获取养护任务列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cropcaretasks?pageNumber=1&pageSize=10&status=Pending",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cropcaretasks"],
+              "query": [
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "Pending"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"返回 code 为 200\", function () {",
+                  "    pm.expect(jsonData.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.test(\"返回任务列表\", function () {",
+                  "    pm.expect(jsonData.data.items).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.3 修改任务状态为已完成",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Completed\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/cropcaretasks/{{test_task_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cropcaretasks", "{{test_task_id}}", "status"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"返回 code 为 200\", function () {",
+                  "    pm.expect(jsonData.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.test(\"任务状态更新成功\", function () {",
+                  "    pm.expect(jsonData.data.status).to.eql(\"Completed\");",
+                  "    pm.expect(jsonData.data.completedDate).to.be.a('string');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "3.4 删除养护任务",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/cropcaretasks/{{test_task_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "cropcaretasks", "{{test_task_id}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"返回 code 为 200\", function () {",
+                  "    pm.expect(jsonData.code).to.eql(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. 收成管理模块",
+      "item": [
+        {
+          "name": "4.1 创建收成记录",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cropId\": \"{{test_crop_id}}\",\n  \"harvestDate\": \"2024-02-15T00:00:00Z\",\n  \"quantity\": 0.2,\n  \"unit\": \"kg\",\n  \"qualityNote\": \"果实饱满，味道甜美\",\n  \"photoUrl\": \"https://example.com/harvest.jpg\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/harvestrecords",
+              "host": ["{{base_url}}"],
+              "path": ["api", "harvestrecords"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"返回 code 为 200\", function () {",
+                  "    pm.expect(jsonData.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.test(\"返回收成记录\", function () {",
+                  "    pm.expect(jsonData.data).to.be.an('object');",
+                  "    pm.expect(jsonData.data.id).to.be.a('string');",
+                  "    pm.expect(jsonData.data.quantity).to.eql(0.2);",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set(\"test_harvest_id\", jsonData.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.2 获取收成记录列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/harvestrecords?pageNumber=1&pageSize=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "harvestrecords"],
+              "query": [
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"返回 code 为 200\", function () {",
+                  "    pm.expect(jsonData.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.test(\"返回收成列表\", function () {",
+                  "    pm.expect(jsonData.data.items).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "4.3 获取收成详情",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/harvestrecords/{{test_harvest_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "harvestrecords", "{{test_harvest_id}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"返回 code 为 200\", function () {",
+                  "    pm.expect(jsonData.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.test(\"返回收成详情\", function () {",
+                  "    pm.expect(jsonData.data.id).to.eql(pm.collectionVariables.get(\"test_harvest_id\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. 病虫害管理模块",
+      "item": [
+        {
+          "name": "5.1 创建病虫害记录",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cropId\": \"{{test_crop_id}}\",\n  \"issueType\": \"红蜘蛛\",\n  \"symptoms\": \"叶片背面有红色小点，叶片发黄\",\n  \"treatment\": \"喷洒阿维菌素稀释液，每3天一次\",\n  \"detectedDate\": \"2024-02-10T00:00:00Z\",\n  \"status\": \"Detected\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/pestrecords",
+              "host": ["{{base_url}}"],
+              "path": ["api", "pestrecords"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"返回 code 为 200\", function () {",
+                  "    pm.expect(jsonData.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.test(\"返回病虫害记录\", function () {",
+                  "    pm.expect(jsonData.data).to.be.an('object');",
+                  "    pm.expect(jsonData.data.id).to.be.a('string');",
+                  "    pm.expect(jsonData.data.issueType).to.eql(\"红蜘蛛\");",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set(\"test_pest_id\", jsonData.data.id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.2 获取病虫害列表",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/pestrecords?pageNumber=1&pageSize=10&status=Detected",
+              "host": ["{{base_url}}"],
+              "path": ["api", "pestrecords"],
+              "query": [
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "Detected"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"返回 code 为 200\", function () {",
+                  "    pm.expect(jsonData.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.test(\"返回病虫害列表\", function () {",
+                  "    pm.expect(jsonData.data.items).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "5.3 更新病虫害状态为已解决",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Resolved\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/pestrecords/{{test_pest_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "pestrecords", "{{test_pest_id}}", "status"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"返回 code 为 200\", function () {",
+                  "    pm.expect(jsonData.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.test(\"病虫害状态更新成功\", function () {",
+                  "    pm.expect(jsonData.data.status).to.eql(\"Resolved\");",
+                  "    pm.expect(jsonData.data.resolvedDate).to.be.a('string');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "6. 统计模块",
+      "item": [
+        {
+          "name": "6.1 获取总览统计",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/stats/overview",
+              "host": ["{{base_url}}"],
+              "path": ["api", "stats", "overview"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"返回 code 为 200\", function () {",
+                  "    pm.expect(jsonData.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.test(\"返回统计数据\", function () {",
+                  "    pm.expect(jsonData.data).to.be.an('object');",
+                  "    pm.expect(jsonData.data.totalCrops).to.be.a('number');",
+                  "    pm.expect(jsonData.data.growingCrops).to.be.a('number');",
+                  "    pm.expect(jsonData.data.totalHarvestQuantity).to.be.a('number');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "6.2 获取趋势统计",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/stats/trend?startDate=2024-01-01T00:00:00Z&endDate=2024-02-29T23:59:59Z",
+              "host": ["{{base_url}}"],
+              "path": ["api", "stats", "trend"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01T00:00:00Z"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-02-29T23:59:59Z"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "pm.test(\"返回 code 为 200\", function () {",
+                  "    pm.expect(jsonData.code).to.eql(200);",
+                  "});",
+                  "",
+                  "pm.test(\"返回趋势数据\", function () {",
+                  "    pm.expect(jsonData.data).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "7. 数据清理 - 删除测试数据",
+      "item": [
+        {
+          "name": "7.1 删除病虫害记录",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/pestrecords/{{test_pest_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "pestrecords", "{{test_pest_id}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          }
+        },
+        {
+          "name": "7.2 删除收成记录",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/harvestrecords/{{test_harvest_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "harvestrecords", "{{test_harvest_id}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "7.3 删除作物",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/crops/{{test_crop_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "crops", "{{test_crop_id}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"响应状态码为 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "console.log(\"测试完成！\");"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

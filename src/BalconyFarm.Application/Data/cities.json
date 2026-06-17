@@ -1,0 +1,226 @@
+[
+  {
+    "name": "北京",
+    "province": "北京",
+    "climateZone": "暖温带半湿润大陆性季风气候",
+    "averageTempByMonth": [-4, -2, 6, 14, 21, 25, 27, 26, 21, 13, 4, -3],
+    "precipitationByMonth": [3, 5, 10, 25, 35, 75, 180, 175, 55, 25, 10, 3]
+  },
+  {
+    "name": "上海",
+    "province": "上海",
+    "climateZone": "亚热带季风气候",
+    "averageTempByMonth": [4, 6, 10, 16, 21, 25, 29, 28, 24, 18, 12, 6],
+    "precipitationByMonth": [50, 60, 95, 105, 115, 170, 145, 140, 155, 65, 55, 45]
+  },
+  {
+    "name": "广州",
+    "province": "广东",
+    "climateZone": "南亚热带海洋性季风气候",
+    "averageTempByMonth": [14, 15, 19, 23, 26, 28, 29, 28, 27, 24, 20, 16],
+    "precipitationByMonth": [45, 70, 95, 185, 290, 295, 230, 225, 185, 70, 45, 35]
+  },
+  {
+    "name": "深圳",
+    "province": "广东",
+    "climateZone": "南亚热带海洋性季风气候",
+    "averageTempByMonth": [15, 16, 19, 23, 27, 28, 29, 29, 27, 24, 21, 16],
+    "precipitationByMonth": [30, 55, 80, 175, 260, 320, 290, 270, 220, 75, 40, 30]
+  },
+  {
+    "name": "杭州",
+    "province": "浙江",
+    "climateZone": "亚热带季风气候",
+    "averageTempByMonth": [5, 7, 11, 17, 22, 26, 30, 29, 24, 18, 12, 7],
+    "precipitationByMonth": [65, 75, 120, 130, 140, 210, 145, 145, 170, 85, 65, 55]
+  },
+  {
+    "name": "南京",
+    "province": "江苏",
+    "climateZone": "亚热带季风气候",
+    "averageTempByMonth": [3, 5, 10, 16, 22, 26, 30, 29, 23, 17, 10, 5],
+    "precipitationByMonth": [45, 55, 80, 95, 105, 180, 175, 130, 75, 65, 55, 40]
+  },
+  {
+    "name": "武汉",
+    "province": "湖北",
+    "climateZone": "亚热带季风气候",
+    "averageTempByMonth": [4, 7, 12, 18, 23, 27, 30, 29, 24, 18, 12, 6],
+    "precipitationByMonth": [50, 65, 100, 130, 150, 210, 155, 125, 80, 70, 60, 45]
+  },
+  {
+    "name": "成都",
+    "province": "四川",
+    "climateZone": "亚热带湿润气候",
+    "averageTempByMonth": [6, 8, 13, 18, 23, 25, 27, 26, 22, 17, 12, 7],
+    "precipitationByMonth": [8, 12, 20, 45, 75, 105, 230, 220, 130, 45, 20, 8]
+  },
+  {
+    "name": "重庆",
+    "province": "重庆",
+    "climateZone": "亚热带湿润季风气候",
+    "averageTempByMonth": [8, 10, 15, 20, 24, 27, 29, 28, 23, 18, 14, 9],
+    "precipitationByMonth": [20, 25, 45, 100, 160, 170, 175, 150, 115, 95, 55, 25]
+  },
+  {
+    "name": "西安",
+    "province": "陕西",
+    "climateZone": "暖温带半湿润大陆性季风气候",
+    "averageTempByMonth": [-1, 2, 8, 15, 21, 26, 28, 26, 20, 13, 6, 0],
+    "precipitationByMonth": [5, 10, 25, 40, 50, 55, 95, 80, 105, 60, 25, 5]
+  },
+  {
+    "name": "天津",
+    "province": "天津",
+    "climateZone": "暖温带半湿润大陆性季风气候",
+    "averageTempByMonth": [-4, -2, 6, 14, 21, 25, 27, 26, 21, 13, 4, -3],
+    "precipitationByMonth": [3, 5, 10, 22, 32, 70, 170, 160, 45, 22, 10, 3]
+  },
+  {
+    "name": "苏州",
+    "province": "江苏",
+    "climateZone": "亚热带季风气候",
+    "averageTempByMonth": [4, 6, 10, 16, 21, 25, 29, 28, 23, 17, 11, 6],
+    "precipitationByMonth": [50, 60, 90, 100, 110, 165, 140, 135, 150, 60, 50, 40]
+  },
+  {
+    "name": "长沙",
+    "province": "湖南",
+    "climateZone": "亚热带季风气候",
+    "averageTempByMonth": [5, 7, 12, 18, 23, 27, 30, 29, 24, 18, 12, 7],
+    "precipitationByMonth": [65, 85, 135, 170, 195, 200, 130, 115, 75, 80, 70, 55]
+  },
+  {
+    "name": "郑州",
+    "province": "河南",
+    "climateZone": "暖温带大陆性季风气候",
+    "averageTempByMonth": [0, 3, 9, 16, 22, 26, 28, 26, 21, 15, 8, 2],
+    "precipitationByMonth": [8, 12, 25, 40, 60, 70, 140, 120, 85, 45, 25, 10]
+  },
+  {
+    "name": "青岛",
+    "province": "山东",
+    "climateZone": "温带季风气候",
+    "averageTempByMonth": [-1, 1, 6, 12, 18, 22, 26, 26, 22, 15, 8, 2],
+    "precipitationByMonth": [10, 12, 20, 35, 55, 80, 145, 160, 75, 45, 25, 10]
+  },
+  {
+    "name": "沈阳",
+    "province": "辽宁",
+    "climateZone": "温带半湿润大陆性季风气候",
+    "averageTempByMonth": [-12, -9, 0, 9, 17, 22, 25, 24, 17, 8, -2, -9],
+    "precipitationByMonth": [5, 7, 15, 35, 55, 90, 175, 155, 70, 40, 15, 7]
+  },
+  {
+    "name": "哈尔滨",
+    "province": "黑龙江",
+    "climateZone": "中温带大陆性季风气候",
+    "averageTempByMonth": [-19, -15, -5, 6, 15, 21, 23, 21, 14, 5, -7, -16],
+    "precipitationByMonth": [4, 4, 10, 20, 45, 85, 165, 110, 55, 25, 10, 5]
+  },
+  {
+    "name": "昆明",
+    "province": "云南",
+    "climateZone": "亚热带高原季风气候",
+    "averageTempByMonth": [9, 11, 14, 18, 20, 21, 20, 20, 19, 16, 12, 9],
+    "precipitationByMonth": [15, 15, 15, 25, 80, 170, 215, 195, 125, 80, 35, 15]
+  },
+  {
+    "name": "厦门",
+    "province": "福建",
+    "climateZone": "南亚热带海洋性季风气候",
+    "averageTempByMonth": [13, 13, 15, 20, 24, 27, 28, 28, 27, 24, 20, 15],
+    "precipitationByMonth": [40, 75, 115, 155, 210, 210, 135, 165, 130, 45, 35, 35]
+  },
+  {
+    "name": "济南",
+    "province": "山东",
+    "climateZone": "暖温带半湿润大陆性季风气候",
+    "averageTempByMonth": [-1, 2, 9, 16, 22, 27, 28, 27, 22, 15, 7, 1],
+    "precipitationByMonth": [6, 10, 20, 35, 55, 85, 190, 155, 65, 45, 20, 8]
+  },
+  {
+    "name": "合肥",
+    "province": "安徽",
+    "climateZone": "亚热带季风气候",
+    "averageTempByMonth": [3, 5, 10, 16, 22, 26, 29, 28, 22, 16, 10, 5],
+    "precipitationByMonth": [40, 55, 85, 100, 110, 170, 160, 125, 70, 60, 50, 35]
+  },
+  {
+    "name": "福州",
+    "province": "福建",
+    "climateZone": "南亚热带季风气候",
+    "averageTempByMonth": [11, 11, 13, 18, 23, 26, 28, 28, 26, 22, 18, 13],
+    "precipitationByMonth": [50, 85, 135, 160, 205, 240, 130, 170, 145, 55, 45, 45]
+  },
+  {
+    "name": "南昌",
+    "province": "江西",
+    "climateZone": "亚热带季风气候",
+    "averageTempByMonth": [6, 8, 13, 19, 24, 27, 30, 29, 25, 19, 13, 8],
+    "precipitationByMonth": [70, 95, 165, 210, 235, 280, 150, 125, 75, 65, 70, 50]
+  },
+  {
+    "name": "贵阳",
+    "province": "贵州",
+    "climateZone": "亚热带湿润温和气候",
+    "averageTempByMonth": [5, 7, 11, 16, 20, 22, 24, 23, 20, 15, 11, 6],
+    "precipitationByMonth": [25, 25, 35, 75, 140, 220, 180, 145, 90, 85, 50, 25]
+  },
+  {
+    "name": "南宁",
+    "province": "广西",
+    "climateZone": "南亚热带季风气候",
+    "averageTempByMonth": [13, 14, 17, 22, 26, 28, 28, 28, 27, 24, 19, 15],
+    "precipitationByMonth": [40, 50, 60, 95, 200, 255, 235, 210, 120, 65, 45, 35]
+  },
+  {
+    "name": "海口",
+    "province": "海南",
+    "climateZone": "热带海洋性季风气候",
+    "averageTempByMonth": [18, 19, 22, 25, 28, 29, 29, 28, 27, 25, 22, 19],
+    "precipitationByMonth": [20, 30, 40, 70, 150, 210, 230, 260, 250, 200, 80, 40]
+  },
+  {
+    "name": "兰州",
+    "province": "甘肃",
+    "climateZone": "温带大陆性干旱气候",
+    "averageTempByMonth": [-7, -3, 5, 12, 18, 22, 24, 23, 17, 10, 2, -5],
+    "precipitationByMonth": [2, 3, 8, 15, 30, 40, 60, 70, 40, 20, 5, 2]
+  },
+  {
+    "name": "乌鲁木齐",
+    "province": "新疆",
+    "climateZone": "温带大陆性干旱气候",
+    "averageTempByMonth": [-15, -11, -1, 10, 18, 23, 25, 23, 16, 7, -4, -12],
+    "precipitationByMonth": [10, 10, 15, 25, 30, 30, 35, 35, 25, 25, 20, 15]
+  },
+  {
+    "name": "呼和浩特",
+    "province": "内蒙古",
+    "climateZone": "中温带大陆性季风气候",
+    "averageTempByMonth": [-13, -9, -1, 8, 16, 21, 23, 21, 15, 7, -3, -10],
+    "precipitationByMonth": [2, 3, 8, 15, 30, 50, 100, 120, 50, 20, 5, 2]
+  },
+  {
+    "name": "太原",
+    "province": "山西",
+    "climateZone": "暖温带大陆性季风气候",
+    "averageTempByMonth": [-5, -2, 5, 13, 20, 24, 25, 23, 18, 11, 3, -3],
+    "precipitationByMonth": [3, 5, 15, 25, 35, 55, 105, 110, 65, 35, 15, 3]
+  },
+  {
+    "name": "长春",
+    "province": "吉林",
+    "climateZone": "中温带大陆性季风气候",
+    "averageTempByMonth": [-16, -12, -3, 7, 16, 21, 24, 22, 15, 6, -5, -13],
+    "precipitationByMonth": [5, 5, 10, 25, 55, 95, 170, 135, 55, 30, 15, 5]
+  },
+  {
+    "name": "石家庄",
+    "province": "河北",
+    "climateZone": "暖温带半湿润大陆性季风气候",
+    "averageTempByMonth": [-2, 1, 8, 16, 22, 26, 27, 26, 21, 14, 6, 0],
+    "precipitationByMonth": [5, 8, 20, 35, 45, 65, 145, 125, 55, 40, 20, 5]
+  }
+]
