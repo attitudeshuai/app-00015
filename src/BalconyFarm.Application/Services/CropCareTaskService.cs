@@ -188,6 +188,10 @@ public class CropCareTaskService : ICropCareTaskService
             {
                 task.CompletedDate = DateTime.UtcNow;
             }
+            else
+            {
+                task.CompletedDate = null;
+            }
         }
         if (dto.Note != null)
             task.Note = dto.Note;
@@ -257,6 +261,10 @@ public class CropCareTaskService : ICropCareTaskService
         if (dto.Status == TaskStatus.Completed)
         {
             task.CompletedDate = DateTime.UtcNow;
+        }
+        else
+        {
+            task.CompletedDate = null;
         }
 
         await _unitOfWork.CropCareTasks.UpdateAsync(task, cancellationToken);
